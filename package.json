@@ -1,0 +1,12 @@
+{
+  "name": "apple",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/input.css -o ./public/style.css --watch"
+  },
+  "author": "Favour Okunowo",
+  "devDependencies": {
+    "tailwindcss": "^3.0.14"
+  }
+}
