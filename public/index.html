@@ -18,14 +18,8 @@
     <link rel="manifest" href="./manifest.json" />
 
     <title>Apple</title>
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./service-worker.js");
-      } else {
-        console.log("Service worker is not supported");
-      }
-    </script>
+    
+    <script src="./app.js"></script>
   </head>
   <body>
     <nav
