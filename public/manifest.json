@@ -1,0 +1,19 @@
+{
+  "background_color": "#ffffff",
+  "description": "An Apple website clone/redesign",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Apple",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "short_name": "Apple",
+  "start_url": "index.html",
+  "theme_color": "#000000",
+  "categories": [],
+  "screenshots": [],
+  "icons": [{
+    "src": "assets/logo.svg",
+    "type": "image/x-icon"
+  }],
+  "shortcuts": []
+}

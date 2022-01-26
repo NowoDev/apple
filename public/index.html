@@ -9,12 +9,23 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
     />
-    <link
-      href="https://upload.wikimedia.org/wikipedia/commons/7/74/Apple_logo_dark_grey.svg"
-      rel="icon"
-      type="image/x-icon"
-    />
+    <link href="./assets/logo.svg" rel="icon" type="image/x-icon" />
+
+    <link rel="apple-touch-icon" href="./assets/logo.svg" />
+    <meta name="apple-mobile-web-app-status-bar" content="#db4938" />
+    <meta name="theme-color" content="#db4938" />
+
+    <link rel="manifest" href="./manifest.json" />
+
     <title>Apple</title>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js");
+      } else {
+        console.log("Service worker is not supported");
+      }
+    </script>
   </head>
   <body>
     <nav
