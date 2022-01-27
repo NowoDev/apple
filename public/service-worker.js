@@ -1,69 +1,261 @@
-const cacheName = "pwa-conf-v1"
-const staticAssets = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./app.js",
-  "./assets/logo.svg"
-]
+/**
+ * Copyright 2016 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 
-// storing static assets in cache on service worker install
-self.addEventListener("install", async event => {
-  const cache = await caches.open(cacheName);
-  await cache.addAll(staticAssets);
-})
+// DO NOT EDIT THIS GENERATED OUTPUT DIRECTLY!
+// This file should be overwritten as part of your build process.
+// If you need to extend the behavior of the generated service worker, the best approach is to write
+// additional code and include it using the importScripts option:
+//   https://github.com/GoogleChrome/sw-precache#importscripts-arraystring
+//
+// Alternatively, it's possible to make changes to the underlying template file and then use that as the
+// new base for generating output, via the templateFilePath option:
+//   https://github.com/GoogleChrome/sw-precache#templatefilepath-string
+//
+// If you go that route, make sure that whenever you update your sw-precache dependency, you reconcile any
+// changes made to this original template file with your modified copy.
 
-// Optional: clents.claim() makes the service worker take over the current page
-// instead of waiting until next load. Useful if you have used SW to prefetch content
-// that's needed on other routes. But potentially dangerous as you are still running the
-// previous version of the app, but with new resources.
-self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+// This generated service worker JavaScript will precache your site's resources.
+// The code needs to be saved in a .js file at the top-level of your site, and registered
+// from your pages in order to be used. See
+// https://github.com/googlechrome/sw-precache/blob/master/demo/app/js/service-worker-registration.js
+// for an example of how you can register this script and handle various service worker events.
+
+/* eslint-env worker, serviceworker */
+/* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
+'use strict';
+
+var precacheConfig = [["assets/diaz.jpeg", "5089cf4cf7c1bfdfb58441cf78ea46b1"], ["assets/icons/icon-192x192.png", "3f6bc959b3f54f2674485c034f72d7ed"], ["assets/icons/icon-256x256.png", "d2c833a1a086840cb726f95fa569f2f4"], ["assets/icons/icon-384x384.png", "bb93f7bf8acbd17b263f4dda36c81b1c"], ["assets/icons/icon-512x512.png", "1b60a58a958c36d3ff7f30689158c4f0"], ["assets/ipad.jpg", "9a23c4a5940c7b67e0f364ef15299257"], ["assets/jake.png", "156015e375aad64c69abb3a48a8e1c7e"], ["assets/logo.svg", "809cd365d570737831f467fb8c32b109"], ["assets/macbook.jpg", "aedfda27f5811cf0d280a86f3b86a4bd"], ["assets/steve.jpg", "c535eb0546140d108ca517592cfbec58"], ["assets/tim.jpg", "0ee8ebc71e0ff4d09231ef08d18b2b08"], ["index.html", "ee3b6ef7256ea480b8932b15a6294cbc"], ["manifest.json", "c8aff545672ce278475bfc16709f1e6b"], ["style.css", "7720476f7e1349053aadbab68d7bad9b"]];
+var cacheName = 'sw-precache-v3-sw-precache-' + (self.registration ? self.registration.scope : '');
+
+
+var ignoreUrlParametersMatching = [/^utm_/];
+
+
+
+var addDirectoryIndex = function (originalUrl, index) {
+  var url = new URL(originalUrl);
+  if (url.pathname.slice(-1) === '/') {
+    url.pathname += index;
+  }
+  return url.toString();
+};
+
+var cleanResponse = function (originalResponse) {
+  // If this is not a redirected response, then we don't have to do anything.
+  if (!originalResponse.redirected) {
+    return Promise.resolve(originalResponse);
+  }
+
+  // Firefox 50 and below doesn't support the Response.body stream, so we may
+  // need to read the entire body to memory as a Blob.
+  var bodyPromise = 'body' in originalResponse ?
+    Promise.resolve(originalResponse.body) :
+    originalResponse.blob();
+
+  return bodyPromise.then(function (body) {
+    // new Response() is happy when passed either a stream or a Blob.
+    return new Response(body, {
+      headers: originalResponse.headers,
+      status: originalResponse.status,
+      statusText: originalResponse.statusText
+    });
+  });
+};
+
+var createCacheKey = function (originalUrl, paramName, paramValue,
+  dontCacheBustUrlsMatching) {
+  // Create a new URL object to avoid modifying originalUrl.
+  var url = new URL(originalUrl);
+
+  // If dontCacheBustUrlsMatching is not set, or if we don't have a match,
+  // then add in the extra cache-busting URL parameter.
+  if (!dontCacheBustUrlsMatching ||
+    !(url.pathname.match(dontCacheBustUrlsMatching))) {
+    url.search += (url.search ? '&' : '') +
+      encodeURIComponent(paramName) + '=' + encodeURIComponent(paramValue);
+  }
+
+  return url.toString();
+};
+
+var isPathWhitelisted = function (whitelist, absoluteUrlString) {
+  // If the whitelist is empty, then consider all URLs to be whitelisted.
+  if (whitelist.length === 0) {
+    return true;
+  }
+
+  // Otherwise compare each path regex to the path of the URL passed in.
+  var path = (new URL(absoluteUrlString)).pathname;
+  return whitelist.some(function (whitelistedPathRegex) {
+    return path.match(whitelistedPathRegex);
+  });
+};
+
+var stripIgnoredUrlParameters = function (originalUrl,
+  ignoreUrlParametersMatching) {
+  var url = new URL(originalUrl);
+  // Remove the hash; see https://github.com/GoogleChrome/sw-precache/issues/290
+  url.hash = '';
+
+  url.search = url.search.slice(1) // Exclude initial '?'
+    .split('&') // Split into an array of 'key=value' strings
+    .map(function (kv) {
+      return kv.split('='); // Split each 'key=value' string into a [key, value] array
+    })
+    .filter(function (kv) {
+      return ignoreUrlParametersMatching.every(function (ignoredRegex) {
+        return !ignoredRegex.test(kv[0]); // Return true iff the key doesn't match any of the regexes.
+      });
+    })
+    .map(function (kv) {
+      return kv.join('='); // Join each [key, value] array into a 'key=value' string
+    })
+    .join('&'); // Join the array of 'key=value' strings into a string with '&' in between each
+
+  return url.toString();
+};
+
+
+var hashParamName = '_sw-precache';
+var urlsToCacheKeys = new Map(
+  precacheConfig.map(function (item) {
+    var relativeUrl = item[0];
+    var hash = item[1];
+    var absoluteUrl = new URL(relativeUrl, self.location);
+    var cacheKey = createCacheKey(absoluteUrl, hashParamName, hash, false);
+    return [absoluteUrl.toString(), cacheKey];
+  })
+);
+
+function setOfCachedUrls(cache) {
+  return cache.keys().then(function (requests) {
+    return requests.map(function (request) {
+      return request.url;
+    });
+  }).then(function (urls) {
+    return new Set(urls);
+  });
+}
+
+self.addEventListener('install', function (event) {
+  event.waitUntil(
+    caches.open(cacheName).then(function (cache) {
+      return setOfCachedUrls(cache).then(function (cachedUrls) {
+        return Promise.all(
+          Array.from(urlsToCacheKeys.values()).map(function (cacheKey) {
+            // If we don't have a key matching url in the cache already, add it.
+            if (!cachedUrls.has(cacheKey)) {
+              var request = new Request(cacheKey, { credentials: 'same-origin' });
+              return fetch(request).then(function (response) {
+                // Bail out of installation unless we get back a 200 OK for
+                // every request.
+                if (!response.ok) {
+                  throw new Error('Request for ' + cacheKey + ' returned a ' +
+                    'response with status ' + response.status);
+                }
+
+                return cleanResponse(response).then(function (responseToCache) {
+                  return cache.put(cacheKey, responseToCache);
+                });
+              });
+            }
+          })
+        );
+      });
+    }).then(function () {
+
+      // Force the SW to transition from installing -> active state
+      return self.skipWaiting();
+
+    })
+  );
 });
 
-// returning static assets from cache
-self.addEventListener("fetch", event => {
-  const req = event.request;
+self.addEventListener('activate', function (event) {
+  var setOfExpectedUrls = new Set(urlsToCacheKeys.values());
 
-  if (/.*(json)$/.test(req.url)) {
-    event.respondWith(networkFirst(req));
-  } else {
-    event.respondWith(cacheFirst(req));
+  event.waitUntil(
+    caches.open(cacheName).then(function (cache) {
+      return cache.keys().then(function (existingRequests) {
+        return Promise.all(
+          existingRequests.map(function (existingRequest) {
+            if (!setOfExpectedUrls.has(existingRequest.url)) {
+              return cache.delete(existingRequest);
+            }
+          })
+        );
+      });
+    }).then(function () {
+
+      return self.clients.claim();
+
+    })
+  );
+});
+
+
+self.addEventListener('fetch', function (event) {
+  if (event.request.method === 'GET') {
+    // Should we call event.respondWith() inside this fetch event handler?
+    // This needs to be determined synchronously, which will give other fetch
+    // handlers a chance to handle the request if need be.
+    var shouldRespond;
+
+    // First, remove all the ignored parameters and hash fragment, and see if we
+    // have that URL in our cache. If so, great! shouldRespond will be true.
+    var url = stripIgnoredUrlParameters(event.request.url, ignoreUrlParametersMatching);
+    shouldRespond = urlsToCacheKeys.has(url);
+
+    // If shouldRespond is false, check again, this time with 'index.html'
+    // (or whatever the directoryIndex option is set to) at the end.
+    var directoryIndex = 'index.html';
+    if (!shouldRespond && directoryIndex) {
+      url = addDirectoryIndex(url, directoryIndex);
+      shouldRespond = urlsToCacheKeys.has(url);
+    }
+
+    // If shouldRespond is still false, check to see if this is a navigation
+    // request, and if so, whether the URL matches navigateFallbackWhitelist.
+    var navigateFallback = '';
+    if (!shouldRespond &&
+      navigateFallback &&
+      (event.request.mode === 'navigate') &&
+      isPathWhitelisted([], event.request.url)) {
+      url = new URL(navigateFallback, self.location).toString();
+      shouldRespond = urlsToCacheKeys.has(url);
+    }
+
+    // If shouldRespond was set to true at any point, then call
+    // event.respondWith(), using the appropriate cache key.
+    if (shouldRespond) {
+      event.respondWith(
+        caches.open(cacheName).then(function (cache) {
+          return cache.match(urlsToCacheKeys.get(url)).then(function (response) {
+            if (response) {
+              return response;
+            }
+            throw Error('The cached response that was expected is missing.');
+          });
+        }).catch(function (e) {
+          // Fall back to just fetch()ing the request if some unexpected error
+          // prevented the cached response from being valid.
+          console.warn('Couldn\'t serve response for "%s" from cache: %O', event.request.url, e);
+          return fetch(event.request);
+        })
+      );
+    }
   }
-})
-
-async function cacheFirst(req) {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = await cache.match(req);
-  return cachedResponse || networkFirst(req);
-}
-
-async function networkFirst(req) {
-  const cache = await caches.open(cacheName);
-  try {
-    const fresh = await fetch(req);
-    cache.put(req, fresh.clone());
-    return fresh;
-  } catch (e) {
-    const cachedResponse = await cache.match(req);
-    return cachedResponse;
-  }
-}
-
-// storing static assets in cache on service worker install
-// self.addEventListener("install", async event => {
-//   event.waitUntil(
-//     caches.open(STATIC_CACHE).then(cache => {
-//       cache.addAll(static_assets)
-//     })
-//   )
-// })
-
-// returning static assets from cache
-// self.addEventListener("fetch", event => {
-//   event.respondWith(
-//     caches.match(event.request).then(response => {
-//       return response || fetch(event.request)
-//     })
-//   )
-// })
+});
